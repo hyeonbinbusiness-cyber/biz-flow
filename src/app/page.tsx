@@ -12,9 +12,12 @@ import {
   ArrowUpRight,
   ArrowRight,
   Plus,
+  FilePen,
+  Banknote,
+  Receipt,
 } from 'lucide-react';
 import Link from 'next/link';
-import { mockDashboardStats, mockDocuments } from '@/data/mockData';
+import { mockDashboardStats, mockDocuments, mockQuotations } from '@/data/mockData';
 import {
   BarChart,
   Bar,
@@ -24,6 +27,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 function formatCurrency(amount: number): string {
@@ -45,11 +51,36 @@ const statusColorMap: Record<string, string> = {
   '발행완료': 'badge-info',
   '전송완료': 'badge-warning',
   '작성중': 'badge-default',
+  '수락됨': 'badge-success',
+  '완료': 'badge-success',
+};
+
+const docTypeMap: Record<string, { icon: React.ElementType; bgClass: string; textClass: string; label: string }> = {
+  tax_invoice: { icon: FileText, bgClass: 'bg-violet-50', textClass: 'text-violet-500', label: '세금계산서' },
+  statement: { icon: ClipboardList, bgClass: 'bg-blue-50', textClass: 'text-blue-500', label: '거래명세표' },
+  quotation: { icon: FilePen, bgClass: 'bg-teal-50', textClass: 'text-teal-500', label: '견적서' },
+  payment_receipt: { icon: Receipt, bgClass: 'bg-green-50', textClass: 'text-green-500', label: '입금표' },
+};
+
+const PIE_COLORS = ['#6366F1', '#3B82F6', '#14B8A6'];
+
+const quotationStatusMap: Record<string, { label: string; class: string }> = {
+  draft: { label: '작성중', class: 'badge-default' },
+  sent: { label: '전송완료', class: 'badge-info' },
+  accepted: { label: '수락됨', class: 'badge-success' },
+  rejected: { label: '거절됨', class: 'bg-red-50 text-red-600 border border-red-100' },
+  expired: { label: '만료됨', class: 'badge-warning' },
 };
 
 export default function DashboardPage() {
   const { toggleChat } = useChatContext();
   const stats = mockDashboardStats;
+
+  const pieData = [
+    { name: '세금계산서', value: stats.documentDistribution.taxInvoices },
+    { name: '거래명세표', value: stats.documentDistribution.statements },
+    { name: '견적서', value: stats.documentDistribution.quotations },
+  ];
 
   return (
     <div className="animate-fade-in">
@@ -67,7 +98,7 @@ export default function DashboardPage() {
           <div className="relative">
             <h3 className="text-lg font-semibold mb-1">안녕하세요, 홍길동님!</h3>
             <p className="text-white/80 text-sm mb-4">
-              이번 달 발행한 세금계산서 {stats.invoiceCount}건, 거래명세표 {stats.statementCount}건이 있습니다.
+              이번 달 세금계산서 {stats.invoiceCount}건, 거래명세표 {stats.statementCount}건, 견적서 {stats.quotationCount}건이 있습니다.
             </p>
             <div className="flex gap-3">
               <Link
@@ -76,6 +107,13 @@ export default function DashboardPage() {
               >
                 <Plus className="w-4 h-4" />
                 세금계산서 발행
+              </Link>
+              <Link
+                href="/quotes/new"
+                className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-white/30 transition-all active:scale-[0.98]"
+              >
+                <Plus className="w-4 h-4" />
+                견적서 작성
               </Link>
               <Link
                 href="/statements/new"
@@ -89,7 +127,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-6 gap-4">
           <div className="stat-card">
             <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">이번 달 매출</span>
@@ -137,6 +175,34 @@ export default function DashboardPage() {
 
           <div className="stat-card">
             <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-500">견적서</span>
+              <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center">
+                <FilePen className="w-5 h-5 text-teal-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{stats.quotationCount}건</p>
+            <div className="flex items-center gap-1 text-xs text-slate-500">
+              <span>이번 달 작성</span>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-500">미수금</span>
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+                <Banknote className="w-5 h-5 text-red-500" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatShortCurrency(stats.outstandingReceivables)}
+            </p>
+            <div className="flex items-center gap-1 text-xs text-red-600">
+              <span>연체: {stats.overdueCount}건</span>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
               <span className="text-sm text-slate-500">처리 대기</span>
               <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
                 <Clock className="w-5 h-5 text-amber-500" />
@@ -149,7 +215,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Chart + Recent Documents + AI Chat */}
+        {/* Chart + Document Distribution + AI Chat */}
         <div className="grid grid-cols-3 gap-6">
           {/* Sales Chart */}
           <div className="card p-6">
@@ -201,7 +267,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Recent Documents */}
+          {/* Recent Documents + Pie Chart */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-slate-900">최근 문서</h3>
@@ -213,43 +279,97 @@ export default function DashboardPage() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="space-y-3">
-              {mockDocuments.slice(0, 5).map((doc) => (
-                <div
-                  key={doc.id}
-                  className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
-                >
+            <div className="space-y-3 mb-6">
+              {mockDocuments.slice(0, 4).map((doc) => {
+                const typeInfo = docTypeMap[doc.type];
+                const DocIcon = typeInfo?.icon || FileText;
+                return (
                   <div
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      doc.type === 'tax_invoice'
-                        ? 'bg-violet-50 text-violet-500'
-                        : 'bg-blue-50 text-blue-500'
-                    }`}
+                    key={doc.id}
+                    className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
                   >
-                    {doc.type === 'tax_invoice' ? (
-                      <FileText className="w-4 h-4" />
-                    ) : (
-                      <ClipboardList className="w-4 h-4" />
-                    )}
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${typeInfo?.bgClass || 'bg-slate-50'} ${typeInfo?.textClass || 'text-slate-500'}`}>
+                      <DocIcon className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700 truncate">{doc.clientName}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{formatCurrency(doc.amount)}</p>
+                    </div>
+                    <span className={statusColorMap[doc.status] || 'badge-default'}>
+                      {doc.status}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-700 truncate">
-                      {doc.clientName}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {formatCurrency(doc.amount)}
-                    </p>
-                  </div>
-                  <span className={statusColorMap[doc.status] || 'badge-default'}>
-                    {doc.status}
-                  </span>
+                );
+              })}
+            </div>
+
+            {/* Document Distribution Pie */}
+            <div className="border-t border-slate-100 pt-4">
+              <h4 className="text-sm font-medium text-slate-700 mb-2">문서 유형 분포</h4>
+              <div className="flex items-center gap-4">
+                <ResponsiveContainer width={100} height={100}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={25}
+                      outerRadius={45}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {pieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-1.5">
+                  {pieData.map((entry, index) => (
+                    <div key={entry.name} className="flex items-center gap-2 text-xs">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[index] }} />
+                      <span className="text-slate-600">{entry.name}: {entry.value}건</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
           {/* AI Chat Panel */}
           <DashboardChat />
+        </div>
+
+        {/* Recent Quotations */}
+        <div className="card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-slate-900">최근 견적서</h3>
+            <Link
+              href="/quotes"
+              className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+            >
+              전체보기
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            {mockQuotations.slice(0, 3).map((q) => (
+              <div key={q.id} className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-500">{q.quotationNumber}</span>
+                  <span className={`${quotationStatusMap[q.status]?.class} badge`}>
+                    {quotationStatusMap[q.status]?.label}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-slate-900 mb-1">{q.receiver.companyName}</p>
+                <p className="text-xs text-slate-500 mb-2">
+                  {q.items[0]?.description}{q.items.length > 1 && ` 외 ${q.items.length - 1}건`}
+                </p>
+                <p className="text-lg font-bold text-slate-900">{formatCurrency(q.grandTotal)}</p>
+                <p className="text-xs text-slate-400 mt-1">유효기간: {q.validUntil}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

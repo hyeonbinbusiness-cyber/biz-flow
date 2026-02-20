@@ -9,8 +9,9 @@ import {
   ClipboardList,
   FolderOpen,
   Download,
-  Filter,
   Calendar,
+  FilePen,
+  Receipt,
 } from 'lucide-react';
 import { mockDocuments } from '@/data/mockData';
 
@@ -23,6 +24,17 @@ const statusColorMap: Record<string, string> = {
   '발행완료': 'badge-info',
   '전송완료': 'badge-warning',
   '작성중': 'badge-default',
+  '수락됨': 'badge-success',
+  '거절됨': 'bg-red-50 text-red-600 border border-red-100',
+  '만료됨': 'badge-warning',
+  '완료': 'badge-success',
+};
+
+const docTypeConfig: Record<string, { icon: React.ElementType; bgClass: string; hoverClass: string; label: string }> = {
+  tax_invoice: { icon: FileText, bgClass: 'bg-violet-50 text-violet-500', hoverClass: 'group-hover:bg-violet-100', label: '세금계산서' },
+  statement: { icon: ClipboardList, bgClass: 'bg-blue-50 text-blue-500', hoverClass: 'group-hover:bg-blue-100', label: '거래명세표' },
+  quotation: { icon: FilePen, bgClass: 'bg-teal-50 text-teal-500', hoverClass: 'group-hover:bg-teal-100', label: '견적서' },
+  payment_receipt: { icon: Receipt, bgClass: 'bg-green-50 text-green-500', hoverClass: 'group-hover:bg-green-100', label: '입금표' },
 };
 
 export default function DocumentsPage() {
@@ -37,7 +49,9 @@ export default function DocumentsPage() {
     const matchType =
       typeFilter === 'all' ||
       (typeFilter === 'invoice' && doc.type === 'tax_invoice') ||
-      (typeFilter === 'statement' && doc.type === 'statement');
+      (typeFilter === 'statement' && doc.type === 'statement') ||
+      (typeFilter === 'quotation' && doc.type === 'quotation') ||
+      (typeFilter === 'payment' && doc.type === 'payment_receipt');
     return matchSearch && matchType;
   });
 
@@ -72,6 +86,8 @@ export default function DocumentsPage() {
                 { key: 'all', label: '전체' },
                 { key: 'invoice', label: '세금계산서' },
                 { key: 'statement', label: '거래명세표' },
+                { key: 'quotation', label: '견적서' },
+                { key: 'payment', label: '입금표' },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -97,55 +113,47 @@ export default function DocumentsPage() {
 
         {/* Document Grid */}
         <div className="grid grid-cols-1 gap-3">
-          {filtered.map((doc) => (
-            <div
-              key={doc.id}
-              className="card-hover p-5 flex items-center gap-4 cursor-pointer group"
-            >
+          {filtered.map((doc) => {
+            const config = docTypeConfig[doc.type] || docTypeConfig.tax_invoice;
+            const DocIcon = config.icon;
+            return (
               <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  doc.type === 'tax_invoice'
-                    ? 'bg-violet-50 text-violet-500 group-hover:bg-violet-100'
-                    : 'bg-blue-50 text-blue-500 group-hover:bg-blue-100'
-                } transition-colors`}
+                key={`${doc.type}-${doc.id}`}
+                className="card-hover p-5 flex items-center gap-4 cursor-pointer group"
               >
-                {doc.type === 'tax_invoice' ? (
-                  <FileText className="w-5 h-5" />
-                ) : (
-                  <ClipboardList className="w-5 h-5" />
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-slate-900 truncate">
-                    {doc.title}
-                  </h3>
-                  <span className={statusColorMap[doc.status] || 'badge-default'}>
-                    {doc.status}
-                  </span>
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${config.bgClass} ${config.hoverClass} transition-colors`}>
+                  <DocIcon className="w-5 h-5" />
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                  <span>{doc.clientName}</span>
-                  <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {doc.createdAt}
-                  </span>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900 truncate">
+                      {doc.title}
+                    </h3>
+                    <span className={statusColorMap[doc.status] || 'badge-default'}>
+                      {doc.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                    <span>{doc.clientName}</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {doc.createdAt}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="text-right">
-                <p className="font-bold text-slate-900">{formatCurrency(doc.amount)}</p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {doc.type === 'tax_invoice' ? '세금계산서' : '거래명세표'}
-                </p>
-              </div>
+                <div className="text-right">
+                  <p className="font-bold text-slate-900">{formatCurrency(doc.amount)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{config.label}</p>
+                </div>
 
-              <button className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all opacity-0 group-hover:opacity-100">
-                <Download className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+                <button className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all opacity-0 group-hover:opacity-100">
+                  <Download className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {filtered.length === 0 && (

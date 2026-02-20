@@ -3,7 +3,7 @@
 import Header from '@/components/layout/Header';
 import { useChatContext } from '@/contexts/ChatContext';
 import Link from 'next/link';
-import { Plus, ClipboardList, Search, MoreHorizontal, Eye, Send, Trash2 } from 'lucide-react';
+import { Plus, ClipboardList, Search, MoreHorizontal, Eye, Send, Trash2, Printer } from 'lucide-react';
 import { mockStatements } from '@/data/mockData';
 import { useState } from 'react';
 
@@ -111,6 +111,12 @@ export default function StatementsPage() {
                         </button>
                         <button className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 text-left">
                           <Send className="w-4 h-4" /> 전송하기
+                        </button>
+                        <button
+                          onClick={() => window.print()}
+                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 text-left"
+                        >
+                          <Printer className="w-4 h-4" /> 인쇄
                         </button>
                         <button className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 text-left">
                           <Trash2 className="w-4 h-4" /> 삭제

@@ -149,6 +149,9 @@ export default function SettingsPage() {
               { label: '세금계산서 발행 알림', desc: '세금계산서가 발행되면 알림을 받습니다' },
               { label: '승인 요청 알림', desc: '역발행 승인 요청 시 알림을 받습니다' },
               { label: '거래명세표 알림', desc: '거래명세표 발행 시 알림을 받습니다' },
+              { label: '견적서 알림', desc: '견적서 수락/거절 시 알림을 받습니다' },
+              { label: '입금 알림', desc: '새로운 입금이 기록되면 알림을 받습니다' },
+              { label: '미수금 연체 알림', desc: '미수금 결제기한이 지나면 알림을 받습니다' },
               { label: '이메일 알림', desc: '중요 알림을 이메일로도 받습니다' },
             ].map((item) => (
               <div key={item.label} className="flex items-center justify-between py-2">

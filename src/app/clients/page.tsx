@@ -15,8 +15,12 @@ import {
   Trash2,
   X,
   Check,
+  FileText,
+  ClipboardList,
+  FilePen,
+  History,
 } from 'lucide-react';
-import { mockClients } from '@/data/mockData';
+import { mockClients, mockInvoices, mockStatements, mockQuotations } from '@/data/mockData';
 import { Client } from '@/types';
 
 export default function ClientsPage() {
@@ -25,6 +29,7 @@ export default function ClientsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailClient, setDetailClient] = useState<Client | null>(null);
   const [formData, setFormData] = useState<Partial<Client>>({
     companyName: '',
     representativeName: '',
@@ -153,6 +158,13 @@ export default function ClientsPage() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button
+                    onClick={() => setDetailClient(client)}
+                    className="p-1.5 rounded-lg hover:bg-primary-50 text-slate-400 hover:text-primary-600 transition-all"
+                    title="거래내역"
+                  >
+                    <History className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => handleEdit(client)}
                     className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all"
                   >
@@ -210,6 +222,118 @@ export default function ClientsPage() {
           </div>
         )}
       </div>
+
+      {/* Client Detail / Transaction History Modal */}
+      {detailClient && (() => {
+        const clientInvoices = mockInvoices.filter(
+          inv => inv.receiver.businessNumber === detailClient.businessNumber ||
+                 inv.supplier.businessNumber === detailClient.businessNumber
+        );
+        const clientStatements = mockStatements.filter(
+          st => st.receiver.businessNumber === detailClient.businessNumber
+        );
+        const clientQuotations = mockQuotations.filter(
+          q => q.receiver.businessNumber === detailClient.businessNumber
+        );
+        const formatCurrency = (amount: number) => new Intl.NumberFormat('ko-KR').format(amount) + '원';
+        const totalInvoiced = clientInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
+
+        return (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in">
+            <div className="bg-white rounded-2xl w-[680px] max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">
+              <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 font-bold">
+                    {detailClient.companyName.replace(/[()주]/g, '').charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">{detailClient.companyName}</h3>
+                    <p className="text-sm text-slate-500">{detailClient.businessNumber}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDetailClient(null)}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Summary */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3 bg-violet-50 rounded-xl text-center">
+                    <FileText className="w-5 h-5 text-violet-500 mx-auto mb-1" />
+                    <p className="text-xs text-slate-500">세금계산서</p>
+                    <p className="text-lg font-bold text-slate-900">{clientInvoices.length}건</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-xl text-center">
+                    <ClipboardList className="w-5 h-5 text-blue-500 mx-auto mb-1" />
+                    <p className="text-xs text-slate-500">거래명세표</p>
+                    <p className="text-lg font-bold text-slate-900">{clientStatements.length}건</p>
+                  </div>
+                  <div className="p-3 bg-teal-50 rounded-xl text-center">
+                    <FilePen className="w-5 h-5 text-teal-500 mx-auto mb-1" />
+                    <p className="text-xs text-slate-500">견적서</p>
+                    <p className="text-lg font-bold text-slate-900">{clientQuotations.length}건</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between">
+                  <span className="text-sm text-slate-600">총 거래 금액</span>
+                  <span className="text-lg font-bold text-slate-900">{formatCurrency(totalInvoiced)}</span>
+                </div>
+
+                {/* Transaction List */}
+                <div>
+                  <h4 className="text-sm font-semibold text-slate-700 mb-3">거래 내역</h4>
+                  <div className="space-y-2">
+                    {clientInvoices.map(inv => (
+                      <div key={inv.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50">
+                        <div className="w-8 h-8 bg-violet-50 rounded-lg flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-violet-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-800">{inv.items[0]?.description}</p>
+                          <p className="text-xs text-slate-400">{inv.issueDate} · 세금계산서</p>
+                        </div>
+                        <p className="text-sm font-bold text-slate-900">{formatCurrency(inv.totalAmount)}</p>
+                      </div>
+                    ))}
+                    {clientStatements.map(st => (
+                      <div key={st.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50">
+                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                          <ClipboardList className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-800">{st.items[0]?.productName}</p>
+                          <p className="text-xs text-slate-400">{st.issueDate} · 거래명세표</p>
+                        </div>
+                        <p className="text-sm font-bold text-slate-900">{formatCurrency(st.totalAmount)}</p>
+                      </div>
+                    ))}
+                    {clientQuotations.map(q => (
+                      <div key={q.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50">
+                        <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+                          <FilePen className="w-4 h-4 text-teal-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-800">{q.items[0]?.description}</p>
+                          <p className="text-xs text-slate-400">{q.issueDate} · 견적서</p>
+                        </div>
+                        <p className="text-sm font-bold text-slate-900">{formatCurrency(q.grandTotal)}</p>
+                      </div>
+                    ))}
+                    {clientInvoices.length === 0 && clientStatements.length === 0 && clientQuotations.length === 0 && (
+                      <p className="text-sm text-slate-400 text-center py-4">거래 내역이 없습니다</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Add/Edit Modal */}
       {showForm && (

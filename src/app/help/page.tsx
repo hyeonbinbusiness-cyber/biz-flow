@@ -11,6 +11,9 @@ import {
   BookOpen,
   MessageCircle,
   Zap,
+  FilePen,
+  Calculator,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -52,6 +55,42 @@ const guides = [
     link: '/clients',
   },
   {
+    icon: FilePen,
+    color: 'bg-teal-50 text-teal-500',
+    title: '견적서 작성하기',
+    description: '거래 전 견적서를 작성하고 세금계산서로 변환하세요',
+    steps: [
+      '견적서 메뉴에서 "새로 작성하기" 클릭합니다',
+      '거래처, 품목, 조건을 입력합니다',
+      '발행 후 수락 시 세금계산서로 변환할 수 있습니다',
+    ],
+    link: '/quotes/new',
+  },
+  {
+    icon: Calculator,
+    color: 'bg-amber-50 text-amber-500',
+    title: '부가세 미리보기',
+    description: '부가가치세 신고 자료를 미리 확인하세요',
+    steps: [
+      '부가세 미리보기 메뉴로 이동합니다',
+      '분기별 기간을 선택합니다',
+      '매출세액과 매입세액, 납부할 세액을 확인합니다',
+    ],
+    link: '/vat-return',
+  },
+  {
+    icon: AlertCircle,
+    color: 'bg-red-50 text-red-500',
+    title: '미수금 관리하기',
+    description: '미수금 현황과 에이징 분석을 확인하세요',
+    steps: [
+      '미수금 관리 메뉴로 이동합니다',
+      '총 미수금과 연체 현황을 확인합니다',
+      '입금 기록 링크로 바로 입금을 기록할 수 있습니다',
+    ],
+    link: '/receivables',
+  },
+  {
     icon: Sparkles,
     color: 'bg-primary-50 text-primary-500',
     title: 'AI 도우미 활용하기',
@@ -81,6 +120,14 @@ const faqs = [
   {
     q: '발행한 세금계산서를 수정할 수 있나요?',
     a: '작성중 상태의 세금계산서는 수정이 가능합니다. 이미 발행된 세금계산서는 수정세금계산서를 새로 발행해야 합니다.',
+  },
+  {
+    q: '견적서를 세금계산서로 변환할 수 있나요?',
+    a: '네, 견적서 목록에서 "세금계산서 변환" 메뉴를 통해 견적서 내용을 기반으로 세금계산서를 바로 발행할 수 있습니다.',
+  },
+  {
+    q: '미수금은 어떻게 관리하나요?',
+    a: '미수금 관리 페이지에서 각 세금계산서별 입금 현황과 연체 상태를 확인할 수 있습니다. 입금표 메뉴에서 입금을 기록하면 미수금이 자동으로 업데이트됩니다.',
   },
 ];
 

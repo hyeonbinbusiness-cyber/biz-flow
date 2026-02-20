@@ -95,10 +95,101 @@ export interface TransactionStatement {
   createdAt: string;
 }
 
+// 견적서 품목
+export interface QuotationItem {
+  id: string;
+  description: string;    // 품목명
+  specification: string;  // 규격
+  quantity: number;       // 수량
+  unitPrice: number;      // 단가
+  amount: number;         // 금액
+  memo: string;           // 비고
+}
+
+// 견적서
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
+  issueDate: string;
+  validUntil: string;
+  supplier: {
+    companyName: string;
+    businessNumber: string;
+    representativeName: string;
+    address: string;
+    phone: string;
+    email: string;
+  };
+  receiver: {
+    companyName: string;
+    businessNumber: string;
+    representativeName: string;
+    address: string;
+    phone: string;
+  };
+  items: QuotationItem[];
+  totalAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  notes: string;
+  paymentTerms: string;
+  deliveryTerms: string;
+  linkedInvoiceId?: string;
+  createdAt: string;
+}
+
+// 입금표
+export interface PaymentReceipt {
+  id: string;
+  paymentNumber: string;
+  invoiceId: string;
+  clientId: string;
+  clientName: string;
+  paymentDate: string;
+  amount: number;
+  paymentMethod: 'bank_transfer' | 'cash' | 'card' | 'check';
+  bankName?: string;
+  accountNumber?: string;
+  memo: string;
+  createdAt: string;
+}
+
+// 미수금 항목
+export interface Receivable {
+  invoiceId: string;
+  clientId: string;
+  clientName: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  daysOverdue: number;
+  status: 'current' | 'overdue_30' | 'overdue_60' | 'overdue_90';
+}
+
+// 부가세 신고 미리보기
+export interface VATReturnPreview {
+  period: string;
+  salesInvoices: {
+    count: number;
+    totalSupply: number;
+    totalTax: number;
+  };
+  purchaseInvoices: {
+    count: number;
+    totalSupply: number;
+    totalTax: number;
+  };
+  vatPayable: number;
+}
+
 // 문서 (통합)
 export interface Document {
   id: string;
-  type: 'tax_invoice' | 'statement';
+  type: 'tax_invoice' | 'statement' | 'quotation' | 'payment_receipt';
   title: string;
   clientName: string;
   amount: number;
@@ -112,8 +203,16 @@ export interface DashboardStats {
   totalPurchases: number;
   invoiceCount: number;
   statementCount: number;
+  quotationCount: number;
   pendingCount: number;
+  outstandingReceivables: number;
+  overdueCount: number;
   monthlySales: { month: string; sales: number; purchases: number }[];
+  documentDistribution: {
+    taxInvoices: number;
+    statements: number;
+    quotations: number;
+  };
 }
 
 // AI 챗봇 메시지

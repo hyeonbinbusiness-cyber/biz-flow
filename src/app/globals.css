@@ -189,3 +189,32 @@
   border-radius: 0.25rem;
   font-size: 0.75rem;
 }
+
+/* Print styles */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    margin-left: 0 !important;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .card {
+    border: 1px solid #e2e8f0;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
