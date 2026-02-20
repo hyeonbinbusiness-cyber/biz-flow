@@ -1,6 +1,7 @@
 'use client';
 
 import Header from '@/components/layout/Header';
+import DashboardChat from '@/components/chat/DashboardChat';
 import { useChatContext } from '@/contexts/ChatContext';
 import {
   TrendingUp,
@@ -11,7 +12,6 @@ import {
   ArrowUpRight,
   ArrowRight,
   Plus,
-  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { mockDashboardStats, mockDocuments } from '@/data/mockData';
@@ -149,10 +149,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Chart + Recent Documents */}
+        {/* Chart + Recent Documents + AI Chat */}
         <div className="grid grid-cols-3 gap-6">
           {/* Sales Chart */}
-          <div className="col-span-2 card p-6">
+          <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="font-semibold text-slate-900">월별 매출/매입 현황</h3>
@@ -247,23 +247,9 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-        </div>
 
-        {/* AI Assistant Prompt */}
-        <div
-          onClick={toggleChat}
-          className="card-hover p-5 flex items-center gap-4 cursor-pointer group"
-        >
-          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary-500/25 transition-all">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1">
-            <h4 className="font-semibold text-slate-900">AI 도우미에게 물어보세요</h4>
-            <p className="text-sm text-slate-500">
-              세금계산서 발행 방법, 부가가치세 계산, 거래처 등록 등 궁금한 것을 질문해보세요
-            </p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary-500 group-hover:translate-x-1 transition-all" />
+          {/* AI Chat Panel */}
+          <DashboardChat />
         </div>
       </div>
     </div>
