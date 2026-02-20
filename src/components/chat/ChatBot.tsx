@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { X, Send, Bot, User, Sparkles, MessageCircle, Square, ArrowRight } from 'lucide-react';
 import { ChatMessage } from '@/types';
 
@@ -237,9 +238,9 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
                 const linkParts = parts.filter(p => p.type === 'link');
                 return (
                   <>
-                    <div className="px-4 py-3 whitespace-pre-line">
-                      {textParts.map((p, i) => <span key={i}>{p.text}</span>)}
-                      {msg.role === 'assistant' && isStreaming && msg.id === messages[messages.length - 1]?.id && (
+                    <div className="px-4 py-3 chat-markdown">
+                      <ReactMarkdown>{textParts.map(p => p.text).join('')}</ReactMarkdown>
+                      {isStreaming && msg.id === messages[messages.length - 1]?.id && (
                         <span className="inline-block w-1.5 h-4 bg-primary-500 ml-0.5 animate-pulse rounded-sm" />
                       )}
                     </div>

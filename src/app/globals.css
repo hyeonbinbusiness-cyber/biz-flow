@@ -153,3 +153,39 @@
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* Chat markdown styles */
+.chat-markdown p {
+  margin-bottom: 0.5rem;
+}
+.chat-markdown p:last-child {
+  margin-bottom: 0;
+}
+.chat-markdown strong {
+  font-weight: 600;
+  color: #334155;
+}
+.chat-markdown ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.chat-markdown ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.chat-markdown li {
+  margin-bottom: 0.25rem;
+}
+.chat-markdown h3 {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+}
+.chat-markdown code {
+  background: #e2e8f0;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
