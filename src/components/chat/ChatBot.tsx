@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Bot, User, Sparkles, MessageCircle, Square } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Send, Bot, User, Sparkles, MessageCircle, Square, ArrowRight } from 'lucide-react';
 import { ChatMessage } from '@/types';
 
 interface ChatBotProps {
@@ -16,7 +17,29 @@ const quickQuestions = [
   '역발행이 뭐야?',
 ];
 
+function parseMessageContent(content: string) {
+  const linkRegex = /\[\[(.+?)\|(.+?)\]\]/g;
+  const parts: { type: 'text' | 'link'; text: string; path?: string }[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', text: content.slice(lastIndex, match.index) });
+    }
+    parts.push({ type: 'link', text: match[1], path: match[2] });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    parts.push({ type: 'text', text: content.slice(lastIndex) });
+  }
+
+  return parts;
+}
+
 export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '0',
@@ -202,15 +225,42 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
               )}
             </div>
             <div
-              className={`max-w-[280px] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+              className={`max-w-[280px] rounded-2xl text-sm leading-relaxed ${
                 msg.role === 'assistant'
                   ? 'bg-slate-50 text-slate-700 rounded-tl-md'
                   : 'bg-primary-600 text-white rounded-tr-md'
               }`}
             >
-              {msg.content}
-              {msg.role === 'assistant' && isStreaming && msg.id === messages[messages.length - 1]?.id && (
-                <span className="inline-block w-1.5 h-4 bg-primary-500 ml-0.5 animate-pulse rounded-sm" />
+              {msg.role === 'assistant' ? (() => {
+                const parts = parseMessageContent(msg.content);
+                const textParts = parts.filter(p => p.type === 'text');
+                const linkParts = parts.filter(p => p.type === 'link');
+                return (
+                  <>
+                    <div className="px-4 py-3 whitespace-pre-line">
+                      {textParts.map((p, i) => <span key={i}>{p.text}</span>)}
+                      {msg.role === 'assistant' && isStreaming && msg.id === messages[messages.length - 1]?.id && (
+                        <span className="inline-block w-1.5 h-4 bg-primary-500 ml-0.5 animate-pulse rounded-sm" />
+                      )}
+                    </div>
+                    {linkParts.length > 0 && !isStreaming && (
+                      <div className="px-3 pb-3 flex flex-col gap-1.5">
+                        {linkParts.map((link, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { router.push(link.path!); onClose(); }}
+                            className="flex items-center justify-between w-full px-3 py-2 bg-primary-50 border border-primary-200 rounded-xl text-xs font-medium text-primary-700 hover:bg-primary-100 transition-all group"
+                          >
+                            <span>{link.text}</span>
+                            <ArrowRight className="w-3.5 h-3.5 text-primary-400 group-hover:translate-x-0.5 transition-transform" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
+                <div className="px-4 py-3 whitespace-pre-line">{msg.content}</div>
               )}
             </div>
           </div>
