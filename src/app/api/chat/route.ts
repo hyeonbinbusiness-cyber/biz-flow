@@ -21,7 +21,13 @@ export async function POST(request: NextRequest) {
   try {
     const { messages } = await request.json();
 
-    const apiKey = 'xai-YnANC9gir2rj2ySzdVALdN22cDfMkttsZJdexnBuZaufUkyUkituNQpZHsPJVnW48HCf4IYLEAYEwBNr';
+    const apiKey = process.env.XAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'API key not configured' },
+        { status: 500 }
+      );
+    }
 
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
